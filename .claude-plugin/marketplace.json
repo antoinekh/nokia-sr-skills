@@ -1,0 +1,20 @@
+{
+  "name": "antoinekh",
+  "description": "Antoine Keranflec'h's Claude Code skill plugins.",
+  "owner": {
+    "name": "Antoine Keranflec'h",
+    "email": "antoine.keranflech@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "nokia-sr-skills",
+      "description": "Learn how to inspect and operate Nokia SR network OSes - SR OS (SROS) and SR Linux (SRL).",
+      "version": "0.2.0",
+      "source": "./",
+      "author": {
+        "name": "Antoine Keranflec'h",
+        "email": "antoine.keranflech@gmail.com"
+      }
+    }
+  ]
+}
