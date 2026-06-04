@@ -1,6 +1,6 @@
 ---
 name: nokia-sr
-description: Use when you need to inspect or operate a Nokia SR network OS - SR OS (SROS, 7750/7250/7950) or SR Linux (SRL) - and must look up how: telling the two NOSes apart, fetching the matching YANG models, finding the software release, understanding config formats (info / info flat, braced vs flat), or applying NETCONF / MD-CLI / gNMI behaviors. Also covers the srpls language server.
+description: "Use when you need to inspect or operate a Nokia SR network OS - SR OS (SROS, 7750/7250/7950) or SR Linux (SRL) - and must look up how: telling the two NOSes apart, fetching the matching YANG models, finding the software release, understanding config formats (info / info flat, braced vs flat), or applying NETCONF / MD-CLI / gNMI behaviors. Also covers the srpls language server."
 ---
 
 # Nokia SR (SR OS & SR Linux) router skill
