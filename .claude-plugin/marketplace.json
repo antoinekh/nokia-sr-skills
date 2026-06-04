@@ -9,7 +9,7 @@
     {
       "name": "nokia-sr-skills",
       "description": "Learn how to inspect and operate Nokia SR network OSes - SR OS (SROS) and SR Linux (SRL).",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "source": "./",
       "author": {
         "name": "Antoine Keranflec'h",
