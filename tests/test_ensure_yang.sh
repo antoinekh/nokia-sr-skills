@@ -1,14 +1,22 @@
 #!/bin/bash
 # Plain-bash test suite for ensure-yang.sh. Sources the script for unit tests and
 # execs it (with stubbed curl + tar on PATH) for integration tests. No network, no bats.
+#
+# shellcheck disable=SC2015,SC2030,SC2031
+# SC2015: '&& pass || fail' is safe here - pass() never fails.
+# SC2030/SC2031: env changes being local to each ( ) subshell is the point - it is
+# how tests stay isolated from each other.
 set -uo pipefail
 
 TEST_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SUT="$TEST_DIR/../skills/nokia-sr/scripts/ensure-yang.sh"
-FAILS=0
+# Failures are recorded in a file, not a counter: most tests run in ( ) subshells,
+# where a counter increment would be lost and the suite would wrongly exit 0.
+FAIL_FLAG=$(mktemp)
+trap 'rm -f "$FAIL_FLAG"' EXIT
 
 pass() { printf 'ok   - %s\n' "$1"; }
-fail() { printf 'FAIL - %s (expected [%s] got [%s])\n' "$1" "$3" "$2"; FAILS=$((FAILS + 1)); }
+fail() { printf 'FAIL - %s (expected [%s] got [%s])\n' "$1" "$3" "$2"; echo "$1" >> "$FAIL_FLAG"; }
 assert_eq() { [[ $2 == "$3" ]] && pass "$1" || fail "$1" "$2" "$3"; }
 
 # Fresh sandbox HOME + stubbed curl/tar on PATH for one integration run.
@@ -20,10 +28,11 @@ make_sandbox() {
   chmod +x "$SANDBOX/bin/curl" "$SANDBOX/bin/tar"
   export CURL_STUB_LOG="$SANDBOX/curl.log"
   : > "$CURL_STUB_LOG"
-  unset CURL_STUB_FAIL_REFS TAR_STUB_NOS
+  unset CURL_STUB_FAIL_REFS TAR_STUB_NOS GITHUB_TOKEN GH_TOKEN
 }
 
 # --- unit: source the script, call pure functions directly ---
+unset GITHUB_TOKEN GH_TOKEN  # keep CURL_OPTS deterministic regardless of caller env
 # shellcheck disable=SC1090
 source "$SUT"
 
@@ -191,11 +200,41 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
 ( bash "$SUT" frobnos 25.10.R4 > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on unknown nos" "$rc" "2" )
 
-# missing args -> exit 2
+# missing args -> exit 2, usage on stderr
 ( bash "$SUT" sros > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on missing version" "$rc" "2" )
-( bash "$SUT" > /dev/null 2>&1; rc=$?
-  assert_eq "e2e: exit 2 on no args" "$rc" "2" )
+( err=$(bash "$SUT" 2>&1 >/dev/null); rc=$?
+  assert_eq "e2e: exit 2 on no args" "$rc" "2"
+  case "$err" in
+    *"Usage: ensure-yang.sh"*) pass "e2e: no args prints usage on stderr" ;;
+    *) fail "e2e: no args prints usage on stderr" "$err" "contains 'Usage: ensure-yang.sh'" ;;
+  esac )
+
+# --help / -h -> usage on stdout, exit 0
+( out=$(bash "$SUT" --help); rc=$?
+  assert_eq "e2e: --help exits 0" "$rc" "0"
+  case "$out" in
+    *"Usage: ensure-yang.sh"*) pass "e2e: --help prints usage" ;;
+    *) fail "e2e: --help prints usage" "$out" "contains 'Usage: ensure-yang.sh'" ;;
+  esac )
+( bash "$SUT" -h > /dev/null; rc=$?
+  assert_eq "e2e: -h exits 0" "$rc" "0" )
+
+# GITHUB_TOKEN -> Authorization header on every GitHub request
+( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH" GITHUB_TOKEN="t0ken"
+  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+  bash "$SUT" sros 25.10.R4 > /dev/null
+  grep -q -- "Authorization: Bearer t0ken" "$CURL_STUB_LOG" \
+    && pass "e2e: token sent as Authorization header" \
+    || fail "e2e: token sent as Authorization header" "missing" "present" )
+
+# no token -> no Authorization header
+( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
+  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+  bash "$SUT" sros 25.10.R4 > /dev/null
+  grep -q -- "Authorization:" "$CURL_STUB_LOG" \
+    && fail "e2e: no Authorization header without token" "present" "absent" \
+    || pass "e2e: no Authorization header without token" )
 
 # relative cache dir is rejected (rm -rf safety guard)
 ( export NOKIA_SR_YANG_DIR="relative/cache"
@@ -223,6 +262,7 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   esac )
 
 echo
+FAILS=$(wc -l < "$FAIL_FLAG")
 if (( FAILS > 0 )); then
   printf '%d test(s) failed\n' "$FAILS"; exit 1
 fi

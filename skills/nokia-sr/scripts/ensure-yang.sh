@@ -1,21 +1,50 @@
 #!/bin/bash
 # ensure-yang.sh - make Nokia SR YANG models available locally.
-#
-# Usage: ensure-yang.sh <nos> <version>
-#   nos      sros | srlinux
-#   version  sros:    MAJOR.MINOR.Rn     e.g. 25.10.R4   (a revision is required)
-#            srlinux: [v]MAJOR.MINOR.PATCH  e.g. 25.10.3 or v25.10.3
-#            either:  latest             resolve the newest release from GitHub
+# Run with --help (or see usage() below) for arguments, environment, and sources.
 #
 # Downloads the matching release as a GitHub tarball - the same source the
 # srpls language server / vscode-sr extension use - and caches it locally.
 # Prints the local YANG release directory on stdout (grep it recursively).
-#
-#   sros    -> github.com/nokia/7x50_YangModels     tag sros_<mm>.r<n> (branch sros_<mm> fallback)
-#   srlinux -> github.com/nokia/srlinux-yang-models  tag v<maj>.<min>.<patch>
 
 GITHUB_API="https://api.github.com/repos"
-CURL_OPTS=(-fsSL -H "Accept: application/vnd.github+json" -A "nokia-sr-skill")
+CURL_OPTS=(-fsSL --retry 3 -H "Accept: application/vnd.github+json" -A "nokia-sr-skill")
+# Unauthenticated api.github.com allows only 60 requests/hour per IP; a token lifts that.
+if [[ -n ${GITHUB_TOKEN:-${GH_TOKEN:-}} ]]; then
+  CURL_OPTS+=(-H "Authorization: Bearer ${GITHUB_TOKEN:-$GH_TOKEN}")
+fi
+
+usage() {
+  cat << 'EOF'
+Usage: ensure-yang.sh <nos> <version>
+
+Make Nokia SR YANG models available locally: check the cache and download the
+matching GitHub release tarball only if missing. Prints the local YANG release
+directory on stdout (grep it recursively).
+
+Arguments:
+  nos      sros | srlinux
+  version  sros:    MAJOR.MINOR.Rn        e.g. 25.10.R4 (a revision is required)
+           srlinux: [v]MAJOR.MINOR.PATCH  e.g. 25.10.3 or v25.10.3
+           either:  latest                resolve the newest release from GitHub
+
+Options:
+  -h, --help  Show this help and exit.
+
+Environment:
+  NOKIA_SR_YANG_DIR       Cache directory (default: ${XDG_CACHE_HOME:-~/.cache}/nokia-sr/yang).
+  GITHUB_TOKEN / GH_TOKEN GitHub token sent as an Authorization header; lifts the
+                          unauthenticated api.github.com rate limit (60 requests/hour per IP).
+
+Sources:
+  sros    -> github.com/nokia/7x50_YangModels      tag sros_<mm>.r<n> (branch sros_<mm> fallback)
+  srlinux -> github.com/nokia/srlinux-yang-models  tag v<maj>.<min>.<patch>
+
+Examples:
+  ensure-yang.sh sros 25.10.R4
+  ensure-yang.sh srlinux 25.10.3
+  ensure-yang.sh sros latest
+EOF
+}
 
 # set_repo <nos> -> sets REPO. Returns 2 for an unknown nos.
 set_repo() {
@@ -154,9 +183,12 @@ fetch_yang() {
 
 main() {
   set -euo pipefail
+  case ${1:-} in
+    -h|--help) usage; exit 0 ;;
+  esac
   local nos=${1:-} version=${2:-}
   if [[ -z $nos || -z $version ]]; then
-    echo "usage: ensure-yang.sh <nos> <version>   e.g. sros 25.10.R4  |  srlinux 25.10.3  |  sros latest" >&2
+    usage >&2
     exit 2
   fi
   if ! set_repo "$nos"; then
@@ -190,7 +222,8 @@ main() {
     exit 0
   fi
 
-  local manual="curl -fsSL $GITHUB_API/$REPO/tarball/${REFS[0]} -o /tmp/yang.tar.gz && mkdir -p $(version_dir "$nos") && tar -xz --strip-components=1 -f /tmp/yang.tar.gz -C $(version_dir "$nos")"
+  local manual
+  manual="curl -fsSL $GITHUB_API/$REPO/tarball/${REFS[0]} -o /tmp/yang.tar.gz && mkdir -p $(version_dir "$nos") && tar -xz --strip-components=1 -f /tmp/yang.tar.gz -C $(version_dir "$nos")"
   if ! command -v curl > /dev/null 2>&1 || ! command -v tar > /dev/null 2>&1; then
     echo "error: need both 'curl' and 'tar'. Install them, or fetch manually:" >&2
     echo "  $manual" >&2

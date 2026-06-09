@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: ShellCheck
+        run: shellcheck skills/nokia-sr/scripts/ensure-yang.sh tests/*.sh
+      - name: Run tests
+        run: bash tests/test_ensure_yang.sh

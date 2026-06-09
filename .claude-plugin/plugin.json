@@ -1,7 +1,7 @@
 {
   "name": "nokia-sr-skills",
   "description": "Learn how to inspect and operate Nokia SR network OSes - SR OS (SROS) and SR Linux (SRL): tell the two apart, fetch YANG models on demand, read the software version, understand config formats, and apply NETCONF / MD-CLI / gNMI behaviors.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "author": {
     "name": "Antoine Keranflec'h",
     "email": "antoine.keranflech@gmail.com"

@@ -23,6 +23,7 @@ A Claude Code skill plugin that teaches Claude how to inspect and operate Nokia'
 | Environment variable | Default | Purpose |
 |----------------------|---------|---------|
 | `NOKIA_SR_YANG_DIR` | `${XDG_CACHE_HOME:-~/.cache}/nokia-sr/yang` | Override the directory where YANG releases are cached and looked up. |
+| `GITHUB_TOKEN` / `GH_TOKEN` | unset | Sent as an Authorization header on GitHub API requests; lifts the unauthenticated rate limit (60 requests/hour per IP). |
 
 ## Layout
 
@@ -41,6 +42,16 @@ skills/nokia-sr/
 ```
 bash tests/test_ensure_yang.sh
 ```
+
+CI runs ShellCheck and this suite on every push and pull request.
+
+## Releasing
+
+The plugin version is duplicated in two files that must stay in sync:
+
+1. Bump `version` in `.claude-plugin/plugin.json` **and** `.claude-plugin/marketplace.json`.
+2. Move the `## Unreleased` entries of `CHANGELOG.md` into a new `## vX.Y.Z - <date>` block.
+3. Commit and tag `vX.Y.Z`.
 
 ## Attribution
 
