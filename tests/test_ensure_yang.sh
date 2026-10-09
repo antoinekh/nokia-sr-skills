@@ -160,6 +160,21 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   [[ -n $(find "$out" -name '*.yang' -print -quit) ]] \
     && pass "fetch: srlinux extracted yang" || fail "fetch: srlinux extracted yang" "none" "present" )
 
+# an interrupted download (signal to the whole process group, like Ctrl-C) leaves no temp files
+( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH" CURL_STUB_SLEEP=30
+  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+  setsid bash "$SUT" sros 25.10.R4 > /dev/null 2>&1 &
+  pid=$!
+  cache="$HOME/.cache/nokia-sr/yang/sros"
+  for _ in {1..50}; do
+    [[ -n $(find "$cache" -name '25.10.R4.tar.*' -print -quit 2>/dev/null) ]] && break
+    sleep 0.1
+  done
+  kill -TERM -- "-$pid"; wait "$pid"
+  leftover=$(find "$cache" -mindepth 1 -print -quit 2>/dev/null)
+  [[ -z $leftover ]] && pass "e2e: interrupted download leaves no temp files" \
+                     || fail "e2e: interrupted download leaves no temp files" "$leftover" "none" )
+
 # end-to-end: sros missing -> fetches -> prints path, exit 0
 ( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
   unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME

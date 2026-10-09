@@ -146,6 +146,11 @@ fetch_yang() {
   tmp="${dest}.tmp.$$"
   tarfile="${dest}.tar.$$"
   errfile="${dest}.err.$$"
+  # An interrupted download (Ctrl-C, kill) must not leave partial files in the cache.
+  # shellcheck disable=SC2064  # expand the paths now, so the trap does not depend on local scope
+  trap "rm -rf $(printf '%q ' "$tmp" "$tarfile" "$errfile")" EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
   mkdir -p "$CACHE_DIR/$nos"
   local url="$GITHUB_API/$REPO/tarball/$REF" err=""
   if ! curl "${CURL_OPTS[@]}" -o "$tarfile" "$url" 2> "$errfile"; then
@@ -163,6 +168,7 @@ fetch_yang() {
       rm -rf "$dest"
       mv "$tmp" "$dest"
       printf '%s\n' "$dest"
+      trap - EXIT INT TERM
       return 0
     else
       err="ref '$REF' contained no .yang files"
@@ -171,6 +177,7 @@ fetch_yang() {
   rm -rf "$tmp"; rm -f "$tarfile" "$errfile"
   # Surface the diagnostic so a network/DNS/TLS/404 failure is distinguishable from a bad version.
   [[ -n $err ]] && printf 'download: %s\n' "$err" >&2
+  trap - EXIT INT TERM
   return 1
 }
 

@@ -4,6 +4,7 @@
 #   .../tarball/<ref>   -> write fake tarball bytes to the -o file (for fetch_yang)
 # Logs each invocation to $CURL_STUB_LOG. Exits 22 (like curl -f on HTTP error),
 # writing a message to stderr, for any ref in $CURL_STUB_FAIL_REFS.
+# $CURL_STUB_SLEEP keeps a tarball download in progress for that many seconds.
 printf '%s\n' "$*" >> "${CURL_STUB_LOG:-/dev/null}"
 
 outfile="" url=""
@@ -31,6 +32,7 @@ done
 
 if [[ -n $outfile ]]; then
   printf 'FAKE_TARBALL\n' > "$outfile"
+  sleep "${CURL_STUB_SLEEP:-0}"
 else
   printf 'FAKE_TARBALL\n'
 fi
