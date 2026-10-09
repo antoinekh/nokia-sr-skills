@@ -69,6 +69,6 @@ SR OS needs an explicit revision (`25.10.R4`, not bare `25.10`); SR Linux needs 
 - Identify the NOS before anything else; SR OS and SR Linux share almost no CLI or model names.
 - For any config or "how do I X" question: ask for the version first, then verify against the YANG model for that version before answering - never answer from memory.
 - Pin the YANG release to the device's actual version before writing filters or templates.
-- Before proposing a `commit`, always propose running the compare/diff first to confirm the change: SR OS `compare` / `md-compare`, SR Linux `diff` / `commit validate`. See each NOS's operate reference.
+- Before proposing a `commit`, always propose running the compare/diff first to confirm the change: SR OS `compare /configure` / `md-compare`, SR Linux `diff` / `commit validate`. See each NOS's operate reference.
 - SR OS only: check configuration-mode (`classic` / `mixed` / `model-driven`) before NETCONF candidate edits, and set `nc:operation` explicitly. See `references/sros/operate.md`.
 - Both NOSes have a flat config form that round-trips as valid input (`info flat`).

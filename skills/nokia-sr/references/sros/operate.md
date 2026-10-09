@@ -74,7 +74,7 @@ Distinct from the device-wide configuration-mode above: each MD-CLI session pick
 
 | Command | Candidate | Use when |
 |---------|-----------|----------|
-| `configure global` (or plain `configure`) | Shared global candidate - concurrent editors see each other's uncommitted changes | Default; coordinated single-operator work |
+| `configure global` | Shared global candidate - concurrent editors see each other's uncommitted changes | Coordinated single-operator work |
 | `configure exclusive` | Locks the global candidate so no one else can enter `configure` | You must guarantee no concurrent edits |
 | `configure private` | Private candidate isolated until `commit`; conflicts detected at commit | Multiple operators editing different services in parallel |
 | `configure read-only` | View only, cannot edit | Inspect candidate without risk of changing it |
@@ -83,15 +83,15 @@ NETCONF sessions edit a per-session private candidate, which is why two services
 
 ## MD-CLI navigation and commit basics
 
-- `configure [global|exclusive|private|read-only]` enters candidate config; `exit all` returns to the root.
+- `configure global|exclusive|private|read-only` enters candidate config; the mode is required (a bare `configure` fails with "Missing element - expected configuration mode"). `exit all` returns to the root; in `configure private` with uncommitted changes, it asks to confirm that it discards them.
 - `info` / `info flat` / `info json` show the current context (see `config-format.md`).
 - `pwc` prints the current working context path.
-- `compare` shows candidate vs running; `validate` checks the candidate without applying it; `discard` drops candidate changes.
+- `compare` shows candidate vs running; `validate` checks the candidate without applying it; `discard` drops candidate changes. `compare` and `discard` act only on the current context and below: from a sub-context, a change elsewhere is not shown and not dropped. Use `compare /configure` and `discard /configure` for the whole candidate.
 - `logout` ends the session and disconnects (use `exit all` first if you only mean to leave the config context, not the device). Discard or commit any candidate changes before logging out.
 
 ### Compare before you commit
 
-Always review the candidate before committing, and propose this to the user first: run `compare` (or the `md-compare` action over NETCONF, see above) to show exactly what will change versus running, and `validate` to check it applies cleanly. Only commit once the diff is confirmed.
+Always review the candidate before committing, and propose this to the user first: run `compare /configure` (or the `md-compare` action over NETCONF, see above) to show exactly what will change versus running, and `validate` to check it applies cleanly. Only commit once the diff is confirmed.
 
 ### Commit safety variants
 
