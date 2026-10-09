@@ -18,6 +18,7 @@
 
 ### Fixed
 
+SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now says to pass `--encoding json_ietf`.
 - README layout: lists `yang-tooling.md`.
 - Header directives, checked against the srpls source: `# version=` must be on line 1; SR Linux `# platform=` is read in the first 5 lines and accepts the full or short name (`7220-ixr-d3l` or `ixr-d3l`); an unknown platform falls back to `7220-IXR-D2L`; srpls reads no platform directive for SR OS.
 - `SKILL.md` key reminder: the SR OS flat form that is valid input from any context is `info full-context`, not `info flat`.

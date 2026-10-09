@@ -49,7 +49,7 @@ gnmic -a <node>:57400 ... set --update-path /interface[name=ethernet-1/1]/admin-
   --update-value enable
 ```
 
-Paths come straight from the `srl_nokia-*` models (`../global/yang-models.md`). Default encoding is `json_ietf`. gNMI Subscribe streams state for telemetry.
+Paths come straight from the `srl_nokia-*` models (`../global/yang-models.md`). gnmic's default encoding is `json`, so pass `--encoding json_ietf` as in the `get` example. gNMI Subscribe streams state for telemetry.
 
 ## JSON-RPC
 
