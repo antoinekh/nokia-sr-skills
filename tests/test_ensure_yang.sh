@@ -10,10 +10,13 @@ set -uo pipefail
 
 TEST_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SUT="$TEST_DIR/../skills/nokia-sr/scripts/ensure-yang.sh"
+# One root for every temp file and sandbox, removed on exit.
+TEST_TMP=$(mktemp -d)
+trap 'rm -rf "$TEST_TMP"' EXIT
 # Failures are recorded in a file, not a counter: most tests run in ( ) subshells,
 # where a counter increment would be lost and the suite would wrongly exit 0.
-FAIL_FLAG=$(mktemp)
-trap 'rm -f "$FAIL_FLAG"' EXIT
+FAIL_FLAG="$TEST_TMP/failures"
+: > "$FAIL_FLAG"
 
 pass() { printf 'ok   - %s\n' "$1"; }
 fail() { printf 'FAIL - %s (expected [%s] got [%s])\n' "$1" "$3" "$2"; echo "$1" >> "$FAIL_FLAG"; }
@@ -21,7 +24,7 @@ assert_eq() { [[ $2 == "$3" ]] && pass "$1" || fail "$1" "$2" "$3"; }
 
 # Fresh sandbox HOME + stubbed curl/tar on PATH for one integration run.
 make_sandbox() {
-  SANDBOX=$(mktemp -d)
+  SANDBOX=$(mktemp -d -p "$TEST_TMP")
   mkdir -p "$SANDBOX/bin"
   cp "$TEST_DIR/curl-stub.sh" "$SANDBOX/bin/curl"
   cp "$TEST_DIR/tar-stub.sh" "$SANDBOX/bin/tar"
