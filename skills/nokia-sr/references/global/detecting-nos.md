@@ -48,7 +48,7 @@ The version *shape* alone is a strong hint: SR OS uses `MAJOR.MINOR.Rn` (e.g. `2
 
 ### 5. Top-level config keywords (braced format)
 
-- SR OS: `configure { ... }` with quoted list keys, e.g. `router "Base" { interface "system" { ... } }`. Flat lines begin with `configure router "Base" ...`.
+- SR OS: `configure { ... }` with quoted list keys, e.g. `router "Base" { interface "system" { ... } }`. `info full-context` lines begin with `/configure router "Base" ...`; `info flat` lines are relative to the current context (from `/configure`: `router "Base" ...`).
 - SR Linux: top-level apps like `network-instance default { ... }`, `interface ethernet-1/1 { subinterface 0 { ... } }`, `system { ... }`. List keys are unquoted; flat lines begin with `set / ...`.
 
 ## On a live device
