@@ -22,7 +22,7 @@ If you don't already know, identify SR OS vs SR Linux first - it decides every l
 
 **Rule for any config / "how do I X" question (e.g. "how do I configure X on SR OS?"): do not answer from memory.** First ask the user for the software version (or confirm it from the device/config), then verify the exact paths, keywords, and syntax against the YANG models for *that* version before giving an answer. Paths are case-sensitive and version-dependent, so an answer that is not checked against the pinned models is a guess.
 
-YANG paths are case-sensitive and version-dependent, so pin the release first.
+How to read the version:
 
 - SR OS version - `references/sros/version-detection.md`
 - SR Linux version - `references/srlinux/version-detection.md`
