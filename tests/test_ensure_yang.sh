@@ -34,6 +34,13 @@ make_sandbox() {
   unset CURL_STUB_FAIL_REFS TAR_STUB_NOS GITHUB_TOKEN GH_TOKEN
 }
 
+# make_sandbox, plus HOME and the stubbed PATH, so a run of the script stays offline and isolated.
+make_e2e_sandbox() {
+  make_sandbox
+  export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
+  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+}
+
 # --- unit: source the script, call pure functions directly ---
 unset GITHUB_TOKEN GH_TOKEN  # keep CURL_OPTS deterministic regardless of caller env
 # shellcheck disable=SC1090
@@ -164,8 +171,7 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
     && pass "fetch: srlinux extracted yang" || fail "fetch: srlinux extracted yang" "none" "present" )
 
 # an interrupted download (signal to the whole process group, like Ctrl-C) leaves no temp files
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH" CURL_STUB_SLEEP=30
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox; export CURL_STUB_SLEEP=30
   setsid bash "$SUT" sros 25.10.R4 > /dev/null 2>&1 &
   pid=$!
   cache="$HOME/.cache/nokia-sr/yang/sros"
@@ -179,22 +185,19 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
                      || fail "e2e: interrupted download leaves no temp files" "$leftover" "none" )
 
 # end-to-end: sros missing -> fetches -> prints path, exit 0
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox
   out=$(bash "$SUT" sros 25.10.R4); rc=$?
   assert_eq "e2e: sros exit 0 on fetch" "$rc" "0"
   assert_eq "e2e: sros prints xdg path" "$out" "$HOME/.cache/nokia-sr/yang/sros/25.10.R4" )
 
 # end-to-end: srlinux missing -> fetches -> prints path, exit 0
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH" TAR_STUB_NOS="srlinux"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox; export TAR_STUB_NOS="srlinux"
   out=$(bash "$SUT" srlinux v25.10.3); rc=$?
   assert_eq "e2e: srlinux exit 0 on fetch" "$rc" "0"
   assert_eq "e2e: srlinux prints xdg path" "$out" "$HOME/.cache/nokia-sr/yang/srlinux/25.10.3" )
 
 # end-to-end: already present -> prints path, does NOT call curl
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox
   d="$HOME/.cache/nokia-sr/yang/sros/25.10.R4/YANG"; mkdir -p "$d"; printf 'module x { }\n' > "$d/x.yang"
   out=$(bash "$SUT" sros 25.10.R4); rc=$?
   assert_eq "e2e: exit 0 when present" "$rc" "0"
@@ -203,29 +206,28 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
                           || pass "e2e: skips curl when present" )
 
 # end-to-end: latest -> resolves newest tag, fetches, prints path
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox
   export CURL_STUB_TAGS_JSON='[{"name":"sros_25.10.r4"},{"name":"sros_26.3.r3"}]'
   out=$(bash "$SUT" sros latest); rc=$?
   assert_eq "e2e: latest exit 0" "$rc" "0"
   assert_eq "e2e: latest resolves newest path" "$out" "$HOME/.cache/nokia-sr/yang/sros/26.3.R3" )
 
 # bad version -> exit 2
-( out=$(bash "$SUT" sros garbage 2>/dev/null); rc=$?
+( make_e2e_sandbox; out=$(bash "$SUT" sros garbage 2>/dev/null); rc=$?
   assert_eq "e2e: exit 2 on bad version" "$rc" "2" )
 
 # bare sros version (no revision) -> exit 2
-( bash "$SUT" sros 25.10 > /dev/null 2>&1; rc=$?
+( make_e2e_sandbox; bash "$SUT" sros 25.10 > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on bare sros version" "$rc" "2" )
 
 # unknown nos -> exit 2
-( bash "$SUT" frobnos 25.10.R4 > /dev/null 2>&1; rc=$?
+( make_e2e_sandbox; bash "$SUT" frobnos 25.10.R4 > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on unknown nos" "$rc" "2" )
 
 # missing args -> exit 2, usage on stderr
-( bash "$SUT" sros > /dev/null 2>&1; rc=$?
+( make_e2e_sandbox; bash "$SUT" sros > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on missing version" "$rc" "2" )
-( err=$(bash "$SUT" 2>&1 >/dev/null); rc=$?
+( make_e2e_sandbox; err=$(bash "$SUT" 2>&1 >/dev/null); rc=$?
   assert_eq "e2e: exit 2 on no args" "$rc" "2"
   case "$err" in
     *"Usage: ensure-yang.sh"*) pass "e2e: no args prints usage on stderr" ;;
@@ -233,44 +235,41 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   esac )
 
 # --help / -h -> usage on stdout, exit 0
-( out=$(bash "$SUT" --help); rc=$?
+( make_e2e_sandbox; out=$(bash "$SUT" --help); rc=$?
   assert_eq "e2e: --help exits 0" "$rc" "0"
   case "$out" in
     *"Usage: ensure-yang.sh"*) pass "e2e: --help prints usage" ;;
     *) fail "e2e: --help prints usage" "$out" "contains 'Usage: ensure-yang.sh'" ;;
   esac )
-( bash "$SUT" -h > /dev/null; rc=$?
+( make_e2e_sandbox; bash "$SUT" -h > /dev/null; rc=$?
   assert_eq "e2e: -h exits 0" "$rc" "0" )
 
 # GITHUB_TOKEN -> Authorization header on every GitHub request
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH" GITHUB_TOKEN="t0ken"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox; export GITHUB_TOKEN="t0ken"
   bash "$SUT" sros 25.10.R4 > /dev/null
   grep -q -- "Authorization: Bearer t0ken" "$CURL_STUB_LOG" \
     && pass "e2e: token sent as Authorization header" \
     || fail "e2e: token sent as Authorization header" "missing" "present" )
 
 # no token -> no Authorization header
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox
   bash "$SUT" sros 25.10.R4 > /dev/null
   grep -q -- "Authorization:" "$CURL_STUB_LOG" \
     && fail "e2e: no Authorization header without token" "present" "absent" \
     || pass "e2e: no Authorization header without token" )
 
 # relative cache dir is rejected (rm -rf safety guard)
-( export NOKIA_SR_YANG_DIR="relative/cache"
+( make_e2e_sandbox; export NOKIA_SR_YANG_DIR="relative/cache"
   bash "$SUT" sros 25.10.R4 > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on relative cache dir" "$rc" "2" )
 
 # root '/' cache dir is rejected (rm -rf safety guard)
-( export NOKIA_SR_YANG_DIR="/"
+( make_e2e_sandbox; export NOKIA_SR_YANG_DIR="/"
   bash "$SUT" sros 25.10.R4 > /dev/null 2>&1; rc=$?
   assert_eq "e2e: exit 2 on root cache dir" "$rc" "2" )
 
 # total download failure surfaces a diagnostic and exits 1
-( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
-  unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
+( make_e2e_sandbox
   export CURL_STUB_FAIL_REFS="sros_25.10.r4"
   err=$(bash "$SUT" sros 25.10.R4 2>&1 >/dev/null); rc=$?
   assert_eq "e2e: exit 1 when all downloads fail" "$rc" "1"

@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- Test suite: every end-to-end test runs in a sandbox with stubbed `curl`/`tar`, so no test can reach the network or the real cache, even after a regression.
 - Test suite: the sandbox directories are removed on exit; each run left about 18 directories in `/tmp`.
 - `ensure-yang.sh`: an interrupted download (Ctrl-C, kill) no longer leaves the partial tarball and temp directory in the cache.
 - SR OS version detection: the header of an MD-CLI saved config is now shown as checked on an SR-SIM 26.3.R1 node, in place of a "verify it yourself" note.
