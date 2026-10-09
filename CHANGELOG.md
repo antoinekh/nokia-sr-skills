@@ -19,6 +19,7 @@
 
 ### Fixed
 
+- SR OS NETCONF: sessions edit the shared global candidate, not a private one; a `<commit>` from one session also commits the uncommitted changes of the others. A candidate `<lock>` blocks the edits of other sessions. Checked on an SR-SIM 26.3.R1 node.
 - SR OS configuration mode: a change applies at once without a reboot, including `classic` to `model-driven` directly; in `classic` mode the NETCONF server does not advertise `:candidate`; `show system information` and the `configuration-oper-mode` state leaf show the mode. Checked on an SR-SIM 26.3.R1 node.
 - `language-server.md`: no longer says that srpls cannot run without VS Code; it works with any LSP editor, and `vscode-sr` only installs and runs it for VS Code.
 - SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now says to pass `--encoding json_ietf`.

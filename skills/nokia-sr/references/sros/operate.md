@@ -80,7 +80,7 @@ Distinct from the device-wide configuration-mode above: each MD-CLI session pick
 | `configure private` | Private candidate isolated until `commit`; conflicts detected at commit | Multiple operators editing different services in parallel |
 | `configure read-only` | View only, cannot edit | Inspect candidate without risk of changing it |
 
-NETCONF sessions edit a per-session private candidate, which is why two services committed independently do not clobber each other - but it also means an uncommitted change in one session is invisible to another.
+NETCONF sessions edit the shared global candidate, like `configure global`: an uncommitted change of one NETCONF session is visible to every other NETCONF session and to MD-CLI `configure global` (not to `configure private`), and a `<commit>` from any session commits it too. To keep two automations apart, take `<lock>` on the candidate: while one session holds it, an edit from another session fails with "Global datastore access unavailable - NETCONF has exclusive lock on configuration". Checked on SR-SIM 26.3.R1.
 
 ## MD-CLI navigation and commit basics
 
