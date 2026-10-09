@@ -10,6 +10,7 @@
 
 ### Changed
 
+- `marketplace.json`: the plugin entry no longer repeats `version` and `author`; Claude Code takes them from `plugin.json`, so the version is set in one place only.
 - CI: the workflow token is read-only (`permissions: contents: read`).
 - `ensure-yang.sh`: a comment records why `latest` reads only the first page of tags (GitHub lists the newest version first).
 

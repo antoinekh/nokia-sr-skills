@@ -56,9 +56,7 @@ CI runs ShellCheck, this suite, the Agent Skills validator (`skills-ref validate
 
 ## Releasing
 
-The plugin version is duplicated in two files that must stay in sync:
-
-1. Bump `version` in `.claude-plugin/plugin.json` **and** `.claude-plugin/marketplace.json`.
+1. Bump `version` in `.claude-plugin/plugin.json` (the only place it is set: the marketplace entry takes it from there).
 2. Move the `## Unreleased` entries of `CHANGELOG.md` into a new `## vX.Y.Z - <date>` block.
 3. Commit and tag `vX.Y.Z`.
 
