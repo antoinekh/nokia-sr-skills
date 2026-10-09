@@ -20,7 +20,7 @@
 ### Fixed
 
 - `language-server.md`: no longer says that srpls cannot run without VS Code; it works with any LSP editor, and `vscode-sr` only installs and runs it for VS Code.
-SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now says to pass `--encoding json_ietf`.
+- SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now says to pass `--encoding json_ietf`.
 - README layout: lists `yang-tooling.md`.
 - Header directives, checked against the srpls source: `# version=` must be on line 1; SR Linux `# platform=` is read in the first 5 lines and accepts the full or short name (`7220-ixr-d3l` or `ixr-d3l`); an unknown platform falls back to `7220-IXR-D2L`; srpls reads no platform directive for SR OS.
 - `SKILL.md` key reminder: the SR OS flat form that is valid input from any context is `info full-context`, not `info flat`.
@@ -31,7 +31,7 @@ SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now 
 - SR OS MD-CLI: `configure` needs a mode (a bare `configure` fails); `compare` and `discard` act only on the current context, so the pre-commit check is now `compare /configure`. Checked on an SR-SIM 26.3.R1 node.
 - SR OS config format: MD-CLI `info` prints one leaf per line; `info flat` paths are relative to the current context; `info full-context` gives the absolute `/configure ...` lines that are valid input from any context. Checked on an SR-SIM 26.3.R1 node.
 - `yang-models.md`: the manual download commands create the target directory first; `tar -C` failed on a missing directory.
-- SR OS `md-compare` example: the action lives in the `nokia-oper-global` namespace under `global-operations` and needs `source`, `destination` and `format md-cli` for a readable diff; the old `conf` namespace shape fails with "Unknown namespace". It exists from 22.7, not 22.0. Checked on an SR-SIM 26.3.R1 node.
+- SR OS `md-compare` example: the action lives in the `nokia-oper-global` namespace under `global-operations` and takes `source`, `destination` and `format md-cli` for a readable diff; the old `conf` namespace shape fails with "Unknown namespace". It exists from 22.7, not 22.0. Checked on an SR-SIM 26.3.R1 node.
 - `ensure-yang.sh`: an SR OS revision without a tag (for example `22.10.R10`) now fails with a clear error. It no longer falls back to the `sros_<maj>.<min>` branch, which holds the newest revision and was cached under the requested one.
 - Skill commands call `ensure-yang.sh` by a path relative to the skill directory (Agent Skills convention), not through `${CLAUDE_PLUGIN_ROOT}`: Claude Code substitutes that variable only in `SKILL.md`, so the commands in the reference files failed, and other harnesses such as OpenCode never substitute it.
 

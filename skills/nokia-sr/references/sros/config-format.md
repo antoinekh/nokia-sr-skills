@@ -30,7 +30,7 @@ From `configure read-only` (context `/configure`):
     router "Base" interface "system" ipv4 primary prefix-length 32
 ```
 
-From `configure ... router "Base" interface "system"`, the same leaves print as `ipv4 primary address 10.0.0.1`. Best for `grep` and line-by-line diffs. Flat lines are valid input when you enter them in the same context they were printed from.
+From the `router "Base" interface "system"` context, the same leaves print as `ipv4 primary address 10.0.0.1`. Best for `grep` and line-by-line diffs. Flat lines are valid input when you enter them in the same context they were printed from.
 
 ## Full context
 
@@ -50,7 +50,7 @@ These lines are valid input from any context, so this is the form to re-apply co
 
 ## Scoping and defaults
 
-Run `info` from a context to limit output to that subtree, e.g. from `configure router "Base"`, `info flat` shows only that router. Add `detail` to include default values that are otherwise omitted (`info detail`, `info flat detail`); unset leaves then show as `## <leaf>` lines.
+Run `info` from a context to limit output to that subtree, e.g. from `configure router "Base"`, `info flat` shows only that router. Add `detail` to include default values that are otherwise omitted (`info detail`, `info flat detail`); in `info flat detail`, an unset leaf shows as a `## <leaf>` line.
 
 ## When to use which
 
