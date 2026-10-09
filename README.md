@@ -41,7 +41,7 @@ skills/nokia-sr/
   SKILL.md
   scripts/ensure-yang.sh
   references/
-    global/{detecting-nos,yang-models,language-server}.md
+    global/{detecting-nos,yang-models,yang-tooling,language-server}.md
     sros/{version-detection,config-format,operate}.md
     srlinux/{version-detection,config-format,operate}.md
 ```
