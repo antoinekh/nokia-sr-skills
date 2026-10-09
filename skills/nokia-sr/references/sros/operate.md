@@ -41,7 +41,7 @@ If the device is in `classic` mode, stop expecting NETCONF candidate edits to wo
 
 - **Error handling:** `stop-on-error` and `rollback-on-error` are supported and both trigger a full rollback. `continue-on-error` is NOT supported and raises an RPC error.
 
-- **Mixed-mode devices (classic CLI + MD-CLI):** `lock`/`unlock` on the `candidate` datastore raises an `RPCError`. Catch and tolerate it with a warning; do not abort.
+- **`lock` authorization:** `<lock>` / `<unlock>` on the `candidate` need `netconf base-op-authorization lock true` in the user's AAA profile, in any configuration mode. Without it they fail with `MINOR: MGMT_CORE #2102: Unsupported operation - Operation is not authorized under the profile config (base-op-authorization)` (26.3.R1). The start of the text differs between releases, so match on `not authorized under the profile config (base-op-authorization)`, warn, and continue without the lock: the edit then shares the global candidate with other sessions (see below).
 
 - **Commit with comment** requires the device to advertise `urn:nokia.com:sros:ns:yang:sr:ietf-netconf-augments`. Check `server_capabilities` first, then dispatch:
 
