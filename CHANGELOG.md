@@ -4,6 +4,7 @@
 
 ### Added
 
+- Tests for a tar failure, a tarball without `.yang` files, an unreachable tags API, and a tags list without a matching version.
 - README: how to use the skill in OpenCode and other Agent Skills harnesses.
 
 ### Fixed

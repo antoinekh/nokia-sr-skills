@@ -31,7 +31,7 @@ make_sandbox() {
   chmod +x "$SANDBOX/bin/curl" "$SANDBOX/bin/tar"
   export CURL_STUB_LOG="$SANDBOX/curl.log"
   : > "$CURL_STUB_LOG"
-  unset CURL_STUB_FAIL_REFS TAR_STUB_NOS GITHUB_TOKEN GH_TOKEN
+  unset CURL_STUB_FAIL_REFS CURL_STUB_SLEEP CURL_STUB_TAGS_FAIL TAR_STUB_NOS TAR_STUB_MODE GITHUB_TOKEN GH_TOKEN
 }
 
 # make_sandbox, plus HOME and the stubbed PATH, so a run of the script stays offline and isolated.
@@ -159,6 +159,34 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   [[ -z $leftover ]] && pass "fetch: no leftover temp dir" \
                      || fail "fetch: no leftover temp dir" "$leftover" "none" )
 
+# a tar failure exits 1 with tar's own error and caches nothing
+( make_sandbox; export PATH="$SANDBOX/bin:$PATH" TAR_STUB_MODE=fail
+  CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
+  REF=sros_25.10.r4
+  err=$(fetch_yang sros 2>&1 >/dev/null); rc=$?
+  assert_eq "fetch: tar failure exit 1" "$rc" "1"
+  case "$err" in
+    *"does not look like a tar archive"*) pass "fetch: surfaces tar's error" ;;
+    *) fail "fetch: surfaces tar's error" "$err" "contains tar's message" ;;
+  esac
+  leftover=$(find "$CACHE_DIR/sros" -mindepth 1 -print -quit 2>/dev/null)
+  [[ -z $leftover ]] && pass "fetch: tar failure leaves nothing" \
+                     || fail "fetch: tar failure leaves nothing" "$leftover" "none" )
+
+# a tarball without .yang files exits 1 and caches nothing
+( make_sandbox; export PATH="$SANDBOX/bin:$PATH" TAR_STUB_MODE=empty
+  CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
+  REF=sros_25.10.r4
+  err=$(fetch_yang sros 2>&1 >/dev/null); rc=$?
+  assert_eq "fetch: no .yang exit 1" "$rc" "1"
+  case "$err" in
+    *"contained no .yang files"*) pass "fetch: reports a tarball without .yang" ;;
+    *) fail "fetch: reports a tarball without .yang" "$err" "contains 'contained no .yang files'" ;;
+  esac
+  leftover=$(find "$CACHE_DIR/sros" -mindepth 1 -print -quit 2>/dev/null)
+  [[ -z $leftover ]] && pass "fetch: no .yang leaves nothing" \
+                     || fail "fetch: no .yang leaves nothing" "$leftover" "none" )
+
 # fetch srlinux uses the v-tag and nests like the real repo
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"; export TAR_STUB_NOS="srlinux"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.3"; REPO="nokia/srlinux-yang-models"
@@ -211,6 +239,25 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   out=$(bash "$SUT" sros latest); rc=$?
   assert_eq "e2e: latest exit 0" "$rc" "0"
   assert_eq "e2e: latest resolves newest path" "$out" "$HOME/.cache/nokia-sr/yang/sros/26.3.R3" )
+
+# latest: an unreachable API exits 1 with a clear error and downloads nothing
+( make_e2e_sandbox; export CURL_STUB_TAGS_FAIL=1
+  err=$(bash "$SUT" sros latest 2>&1 >/dev/null); rc=$?
+  assert_eq "e2e: latest exit 1 when the API fails" "$rc" "1"
+  case "$err" in
+    *"could not resolve latest sros version"*) pass "e2e: latest reports the API failure" ;;
+    *) fail "e2e: latest reports the API failure" "$err" "contains 'could not resolve latest sros version'" ;;
+  esac
+  grep -q -- "/tarball/" "$CURL_STUB_LOG" \
+    && fail "e2e: latest API failure downloads nothing" "downloaded" "nothing" \
+    || pass "e2e: latest API failure downloads nothing" )
+
+# latest: no tag of the NOS's version shape -> resolve_latest returns 1
+( make_sandbox; export PATH="$SANDBOX/bin:$PATH"
+  export CURL_STUB_TAGS_JSON='[{"name":"junk"},{"name":"sros_23.10.r6-1"}]'
+  set_repo sros
+  if resolve_latest sros > /dev/null; then
+    fail "latest: no matching tag returns 1" "found" "none"; else pass "latest: no matching tag returns 1"; fi )
 
 # bad version -> exit 2
 ( make_e2e_sandbox; out=$(bash "$SUT" sros garbage 2>/dev/null); rc=$?

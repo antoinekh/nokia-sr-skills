@@ -5,6 +5,7 @@
 # Logs each invocation to $CURL_STUB_LOG. Exits 22 (like curl -f on HTTP error),
 # writing a message to stderr, for any ref in $CURL_STUB_FAIL_REFS.
 # $CURL_STUB_SLEEP keeps a tarball download in progress for that many seconds.
+# $CURL_STUB_TAGS_FAIL=1 makes the tags request fail like an unreachable API.
 printf '%s\n' "$*" >> "${CURL_STUB_LOG:-/dev/null}"
 
 outfile="" url=""
@@ -18,6 +19,10 @@ while (( $# )); do
 done
 
 if [[ $url == *"/tags"* ]]; then
+  if [[ ${CURL_STUB_TAGS_FAIL:-} == "1" ]]; then
+    echo "curl: (6) Could not resolve host: api.github.com" >&2
+    exit 6
+  fi
   printf '%s' "${CURL_STUB_TAGS_JSON:-[]}"
   exit 0
 fi
