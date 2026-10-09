@@ -71,4 +71,4 @@ SR OS needs an explicit revision (`25.10.R4`, not bare `25.10`); SR Linux needs 
 - Pin the YANG release to the device's actual version before writing filters or templates.
 - Before proposing a `commit`, always propose running the compare/diff first to confirm the change: SR OS `compare /configure` / `md-compare`, SR Linux `diff` / `commit validate`. See each NOS's operate reference.
 - SR OS only: check configuration-mode (`classic` / `mixed` / `model-driven`) before NETCONF candidate edits, and set `nc:operation` explicitly. See `references/sros/operate.md`.
-- Both NOSes have a flat config form that round-trips as valid input (`info flat`).
+- Both NOSes have a flat config form that is valid input: SR Linux `info flat` (`set / ...` lines); SR OS `info full-context` (`/configure ...` lines), because SR OS `info flat` is relative to the current context.

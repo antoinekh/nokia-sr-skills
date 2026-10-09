@@ -18,6 +18,7 @@
 
 ### Fixed
 
+- `SKILL.md` key reminder: the SR OS flat form that is valid input from any context is `info full-context`, not `info flat`.
 - Test suite: every end-to-end test runs in a sandbox with stubbed `curl`/`tar`, so no test can reach the network or the real cache, even after a regression.
 - Test suite: the sandbox directories are removed on exit; each run left about 18 directories in `/tmp`.
 - `ensure-yang.sh`: an interrupted download (Ctrl-C, kill) no longer leaves the partial tarball and temp directory in the cache.
