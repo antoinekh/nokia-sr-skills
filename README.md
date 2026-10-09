@@ -52,7 +52,7 @@ skills/nokia-sr/
 bash tests/test_ensure_yang.sh
 ```
 
-CI runs ShellCheck and this suite on every push and pull request.
+CI runs ShellCheck, this suite, the Agent Skills validator (`skills-ref validate`) and `claude plugin validate --strict` on every push and pull request.
 
 ## Releasing
 

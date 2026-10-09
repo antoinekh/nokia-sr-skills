@@ -4,6 +4,7 @@
 
 ### Added
 
+- CI: `skills-ref validate` checks the SKILL.md frontmatter against the Agent Skills spec (it catches the invalid YAML fixed in v0.2.1), and `claude plugin validate --strict` checks `plugin.json` and `marketplace.json`.
 - Tests for a tar failure, a tarball without `.yang` files, an unreachable tags API, and a tags list without a matching version.
 - README: how to use the skill in OpenCode and other Agent Skills harnesses.
 
