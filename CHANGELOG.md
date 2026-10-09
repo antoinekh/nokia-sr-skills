@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- README: how to use the skill in OpenCode and other Agent Skills harnesses.
+
 ### Fixed
 
 - Skill commands call `ensure-yang.sh` by a path relative to the skill directory (Agent Skills convention), not through `${CLAUDE_PLUGIN_ROOT}`: Claude Code substitutes that variable only in `SKILL.md`, so the commands in the reference files failed, and other harnesses such as OpenCode never substitute it.

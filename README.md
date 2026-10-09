@@ -9,6 +9,15 @@ A Claude Code skill plugin that teaches Claude how to inspect and operate Nokia'
 /plugin install nokia-sr-skills@antoinekh
 ```
 
+### Other harnesses
+
+OpenCode and other [Agent Skills](https://agentskills.io) harnesses do not install Claude Code plugins. Link the skill folder into one of their skill directories instead, for example for OpenCode:
+
+```
+mkdir -p ~/.config/opencode/skills
+ln -s "$PWD/skills/nokia-sr" ~/.config/opencode/skills/nokia-sr
+```
+
 ## What it does
 
 - **NOS detection** - tell SR OS from SR Linux (file, config, live device); ask the user when unsure.
