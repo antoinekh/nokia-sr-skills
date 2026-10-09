@@ -56,7 +56,7 @@ set_repo() {
 }
 
 # normalize_version <nos> <version>
-# Sets: REPO, CANON_VER (canonical version used for the cache dir),
+# Sets: CANON_VER (canonical version used for the cache dir),
 #       REF (the release tag). Returns 1 on bad version, 2 on bad nos.
 # A concrete version is required here - 'latest' is resolved earlier, in main.
 normalize_version() {
@@ -65,7 +65,6 @@ normalize_version() {
   # Trim surrounding whitespace so copy-pasted values (e.g. " 25.10.R4 ") still parse.
   raw=${raw#"${raw%%[![:space:]]*}"}
   raw=${raw%"${raw##*[![:space:]]}"}
-  set_repo "$nos" || return 2
   case $nos in
     sros)
       # Only the revision tag holds that exact release: the sros_<mm> branch
@@ -85,6 +84,9 @@ normalize_version() {
         return 0
       fi
       return 1
+      ;;
+    *)
+      return 2
       ;;
   esac
 }
@@ -134,6 +136,14 @@ find_existing_yang() {
   return 1
 }
 
+# one_line_error <file> <fallback> -> prints the file on one trimmed line, or the fallback if it is empty.
+one_line_error() {
+  local msg
+  msg=$(tr '\n' ' ' < "$1")
+  msg=${msg%"${msg##*[![:space:]]}"}
+  printf '%s\n' "${msg:-$2}"
+}
+
 # fetch_yang <nos> -> downloads the tarball for REF and extracts it into the
 # release dir; prints the dir. Returns 1 on failure.
 # Downloads to a temp file (so curl's exit code and error are checked explicitly,
@@ -155,15 +165,13 @@ fetch_yang() {
   mkdir -p "$CACHE_DIR/$nos"
   local url="$GITHUB_API/$REPO/tarball/$REF" err=""
   if ! curl "${CURL_OPTS[@]}" -o "$tarfile" "$url" 2> "$errfile"; then
-    err=$(tr '\n' ' ' < "$errfile"); err=${err%"${err##*[![:space:]]}"}
-    [[ -z $err ]] && err="curl failed for $url"
+    err=$(one_line_error "$errfile" "curl failed for $url")
   else
     mkdir -p "$tmp"
     # GitHub's tarball has a single top-level dir; --strip-components=1 drops it
     # so modules land directly under the release dir, like the language server.
     if ! tar -xzf "$tarfile" --strip-components=1 -C "$tmp" 2> "$errfile"; then
-      err=$(tr '\n' ' ' < "$errfile"); err=${err%"${err##*[![:space:]]}"}
-      [[ -z $err ]] && err="tar failed to extract $url"
+      err=$(one_line_error "$errfile" "tar failed to extract $url")
     elif [[ -n $(find "$tmp" -name '*.yang' -print -quit 2>/dev/null) ]]; then
       rm -f "$tarfile" "$errfile"
       rm -rf "$dest"

@@ -49,7 +49,6 @@ source "$SUT"
 # sros version parsing
 normalize_version sros "25.10.R4"
 assert_eq "sros canon from 25.10.R4"   "$CANON_VER"  "25.10.R4"
-assert_eq "sros repo"                  "$REPO"       "nokia/7x50_YangModels"
 assert_eq "sros ref from 25.10.R4"     "$REF"        "sros_25.10.r4"
 
 normalize_version sros "25.10.r4"
@@ -65,7 +64,6 @@ assert_eq "sros trims whitespace"      "$CANON_VER"  "25.10.R4"
 # srlinux version parsing
 normalize_version srlinux "25.10.3"
 assert_eq "srlinux canon from 25.10.3" "$CANON_VER"  "25.10.3"
-assert_eq "srlinux repo"               "$REPO"       "nokia/srlinux-yang-models"
 assert_eq "srlinux ref from 25.10.3"   "$REF"        "v25.10.3"
 
 normalize_version srlinux "v25.10.3"
@@ -80,7 +78,16 @@ if normalize_version srlinux "25.10"; then
 normalize_version frobnos "25.10.R4"; rc=$?
 assert_eq "unknown nos returns 2" "$rc" "2"
 
+set_repo sros;    assert_eq "set_repo sros"    "$REPO" "nokia/7x50_YangModels"
+set_repo srlinux; assert_eq "set_repo srlinux" "$REPO" "nokia/srlinux-yang-models"
 set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
+
+# one_line_error joins a multi-line error and falls back when the file is empty
+( make_sandbox
+  printf 'curl: (22) 404\n\n' > "$SANDBOX/err"
+  assert_eq "error: one trimmed line" "$(one_line_error "$SANDBOX/err" fallback)" "curl: (22) 404"
+  : > "$SANDBOX/err"
+  assert_eq "error: empty file -> fallback" "$(one_line_error "$SANDBOX/err" fallback)" "fallback" )
 
 # resolve_latest picks the highest version from the tags API (stubbed curl)
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"
