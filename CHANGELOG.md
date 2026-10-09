@@ -19,6 +19,7 @@
 
 ### Fixed
 
+- SR OS configuration mode: a change applies at once without a reboot, including `classic` to `model-driven` directly; in `classic` mode the NETCONF server does not advertise `:candidate`; `show system information` and the `configuration-oper-mode` state leaf show the mode. Checked on an SR-SIM 26.3.R1 node.
 - `language-server.md`: no longer says that srpls cannot run without VS Code; it works with any LSP editor, and `vscode-sr` only installs and runs it for VS Code.
 - SR Linux gNMI: gnmic's default encoding is `json`, not `json_ietf`; the doc now says to pass `--encoding json_ietf`.
 - README layout: lists `yang-tooling.md`.

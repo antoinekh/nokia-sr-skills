@@ -8,20 +8,21 @@ Before anything else, know which configuration mode the box is in - it decides w
 
 | Mode | Who can configure | NETCONF / MD-CLI candidate |
 |------|-------------------|----------------------------|
-| `classic` | Classic CLI only | Not available - NETCONF config edits are rejected |
-| `mixed` | Classic CLI **and** MD-CLI / NETCONF | Available, but coexists with classic; expect the `lock` caveat below |
+| `classic` | Classic CLI only | Not available - the NETCONF server does not advertise `:candidate` |
+| `mixed` | Classic CLI **and** MD-CLI / NETCONF | Available, but coexists with classic |
 | `model-driven` | MD-CLI / NETCONF / gNMI only (classic config disabled) | Full candidate workflow |
 
-The config leaf is `configure system management-interface configuration-mode`. Switching between `classic` and `model-driven` requires a reboot.
+The config leaf is `configure system management-interface configuration-mode`. A change applies at once, without a reboot: `model-driven` to `mixed` to `classic`, then `classic` directly back to `model-driven`, each completed in seconds (checked on SR-SIM 26.3.R1; the log shows "configuration mode change ... was initiated" then "has completed").
 
 **Detect it:**
 
 - MD-CLI: from `configure system management-interface`, run `info` and read the `configuration-mode` line. Reliable and version-independent.
+- Any CLI: `show system information | match Mode` prints `Configuration Mode Cfg` and `Configuration Mode Oper`.
 - From a saved config: `grep -n 'configuration-mode' <file>`.
-- NETCONF: `<get-config>` the same path. The exact state/config YANG path is version-dependent - verify it against the pinned models (`grep -rn 'configuration-mode' "$YANG/YANG/nokia-combined/nokia-conf.yang"`) rather than hardcoding it. See `version-detection.md` and `../global/yang-models.md`.
-- Prompt heuristic (interactive only, not authoritative): model-driven MD-CLI shows a `[/...]` context line above the `A:admin@node#` prompt; classic CLI shows `*A:node#` with no context line.
+- NETCONF: `<get-config>` the same path. The exact state/config YANG path is version-dependent - verify it against the pinned models (`grep -rn 'configuration-mode' "$YANG/YANG/nokia-combined/nokia-conf.yang"`) rather than hardcoding it. See `version-detection.md` and `../global/yang-models.md`. The operational mode is the state leaf `/nokia-state:state/system/management-interface/configuration-oper-mode` (26.3.R1).
+- Prompt heuristic (interactive only, not authoritative): model-driven MD-CLI shows a `[/...]` context line above the `A:admin@node#` prompt; classic CLI shows `A:node#` (`*A:node#` with unsaved changes) with no context line. In `mixed` and `classic` modes, a new SSH session starts in the classic CLI.
 
-If the device is in `classic` mode, stop expecting NETCONF candidate edits to work - switch the box (and reboot) or drive it over classic CLI instead.
+If the device is in `classic` mode, stop expecting NETCONF candidate edits to work - switch the box to `mixed` or `model-driven` (no reboot needed) or drive it over classic CLI instead.
 
 ## NETCONF quirks
 
