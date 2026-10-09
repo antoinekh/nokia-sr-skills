@@ -36,7 +36,7 @@ Environment:
                           unauthenticated api.github.com rate limit (60 requests/hour per IP).
 
 Sources:
-  sros    -> github.com/nokia/7x50_YangModels      tag sros_<mm>.r<n> (branch sros_<mm> fallback)
+  sros    -> github.com/nokia/7x50_YangModels      tag sros_<mm>.r<n>
   srlinux -> github.com/nokia/srlinux-yang-models  tag v<maj>.<min>.<patch>
 
 Examples:
@@ -57,7 +57,7 @@ set_repo() {
 
 # normalize_version <nos> <version>
 # Sets: REPO, CANON_VER (canonical version used for the cache dir),
-#       REFS (ordered refs to try). Returns 1 on bad version, 2 on bad nos.
+#       REF (the release tag). Returns 1 on bad version, 2 on bad nos.
 # A concrete version is required here - 'latest' is resolved earlier, in main.
 normalize_version() {
   local nos=$1
@@ -66,15 +66,14 @@ normalize_version() {
   raw=${raw#"${raw%%[![:space:]]*}"}
   raw=${raw%"${raw##*[![:space:]]}"}
   set_repo "$nos" || return 2
-  REFS=()
   case $nos in
     sros)
-      # Require an explicit revision (Rn): a bare 25.10 would pin to the moving
-      # sros_25.10 branch and cache stale models, so reject it.
+      # Only the revision tag holds that exact release: the sros_<mm> branch
+      # follows the newest revision, so it is never a fallback.
       if [[ $raw =~ ^([0-9]+\.[0-9]+)\.r([0-9]+)$ ]]; then
         local mm=${BASH_REMATCH[1]} rev=${BASH_REMATCH[2]}
         CANON_VER="${mm}.R${rev}"
-        REFS+=("sros_${mm}.r${rev}" "sros_${mm}")  # revision tag, then branch as fallback
+        REF="sros_${mm}.r${rev}"
         return 0
       fi
       return 1
@@ -82,7 +81,7 @@ normalize_version() {
     srlinux)
       if [[ $raw =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
         CANON_VER="${BASH_REMATCH[1]}"
-        REFS+=("v${CANON_VER}")  # yang files live only on the version tag, not main
+        REF="v${CANON_VER}"  # yang files live only on the version tag, not main
         return 0
       fi
       return 1
@@ -134,8 +133,8 @@ find_existing_yang() {
   return 1
 }
 
-# fetch_yang <nos> -> downloads the tarball for the first working ref and extracts
-# it into the release dir; prints the dir. Returns 1 on failure.
+# fetch_yang <nos> -> downloads the tarball for REF and extracts it into the
+# release dir; prints the dir. Returns 1 on failure.
 # Downloads to a temp file (so curl's exit code and error are checked explicitly,
 # not hidden behind a pipe) and extracts into a temp sibling, renaming atomically
 # on success: a partial download never lands in the final path, so a failed
@@ -148,33 +147,27 @@ fetch_yang() {
   tarfile="${dest}.tar.$$"
   errfile="${dest}.err.$$"
   mkdir -p "$CACHE_DIR/$nos"
-  local ref err=""
-  for ref in "${REFS[@]}"; do
-    [[ -z $ref ]] && continue
-    rm -rf "$tmp"; rm -f "$tarfile"
-    local url="$GITHUB_API/$REPO/tarball/$ref"
-    if ! curl "${CURL_OPTS[@]}" -o "$tarfile" "$url" 2> "$errfile"; then
-      err=$(tr '\n' ' ' < "$errfile"); err=${err%"${err##*[![:space:]]}"}
-      [[ -z $err ]] && err="curl failed for $url"
-      continue
-    fi
+  local url="$GITHUB_API/$REPO/tarball/$REF" err=""
+  if ! curl "${CURL_OPTS[@]}" -o "$tarfile" "$url" 2> "$errfile"; then
+    err=$(tr '\n' ' ' < "$errfile"); err=${err%"${err##*[![:space:]]}"}
+    [[ -z $err ]] && err="curl failed for $url"
+  else
     mkdir -p "$tmp"
     # GitHub's tarball has a single top-level dir; --strip-components=1 drops it
     # so modules land directly under the release dir, like the language server.
     if ! tar -xzf "$tarfile" --strip-components=1 -C "$tmp" 2> "$errfile"; then
       err=$(tr '\n' ' ' < "$errfile"); err=${err%"${err##*[![:space:]]}"}
       [[ -z $err ]] && err="tar failed to extract $url"
-      continue
-    fi
-    if [[ -n $(find "$tmp" -name '*.yang' -print -quit 2>/dev/null) ]]; then
+    elif [[ -n $(find "$tmp" -name '*.yang' -print -quit 2>/dev/null) ]]; then
       rm -f "$tarfile" "$errfile"
       rm -rf "$dest"
       mv "$tmp" "$dest"
       printf '%s\n' "$dest"
       return 0
+    else
+      err="ref '$REF' contained no .yang files"
     fi
-    err="ref '$ref' contained no .yang files"
-  done
+  fi
   rm -rf "$tmp"; rm -f "$tarfile" "$errfile"
   # Surface the diagnostic so a network/DNS/TLS/404 failure is distinguishable from a bad version.
   [[ -n $err ]] && printf 'download: %s\n' "$err" >&2
@@ -223,7 +216,7 @@ main() {
   fi
 
   local manual
-  manual="curl -fsSL $GITHUB_API/$REPO/tarball/${REFS[0]} -o /tmp/yang.tar.gz && mkdir -p $(version_dir "$nos") && tar -xz --strip-components=1 -f /tmp/yang.tar.gz -C $(version_dir "$nos")"
+  manual="curl -fsSL $GITHUB_API/$REPO/tarball/$REF -o /tmp/yang.tar.gz && mkdir -p $(version_dir "$nos") && tar -xz --strip-components=1 -f /tmp/yang.tar.gz -C $(version_dir "$nos")"
   if ! command -v curl > /dev/null 2>&1 || ! command -v tar > /dev/null 2>&1; then
     echo "error: need both 'curl' and 'tar'. Install them, or fetch manually:" >&2
     echo "  $manual" >&2
@@ -236,7 +229,7 @@ main() {
     exit 0
   fi
 
-  echo "error: failed to fetch $nos YANG for ${CANON_VER}. Fetch manually:" >&2
+  echo "error: failed to fetch $nos YANG for ${CANON_VER} (tag $REF). Check that the tag exists in https://github.com/$REPO/tags, or fetch manually:" >&2
   echo "  $manual" >&2
   exit 1
 }

@@ -26,11 +26,12 @@ https://api.github.com/repos/<repo>/tarball/<ref>
 
 | NOS | Repo | Ref it fetches |
 |-----|------|----------------|
-| SR OS | `nokia/7x50_YangModels` | tag `sros_<maj>.<min>.r<rev>` (e.g. `sros_25.10.r4`), falling back to branch `sros_<maj>.<min>` |
+| SR OS | `nokia/7x50_YangModels` | tag `sros_<maj>.<min>.r<rev>` (e.g. `sros_25.10.r4`) |
 | SR Linux | `nokia/srlinux-yang-models` | tag `v<maj>.<min>.<patch>` (e.g. `v25.10.3`) |
 
 Notes:
 - SR OS tags are lowercase (`sros_25.10.r4`); the cache dir keeps the canonical `25.10.R4`.
+- Nokia did not publish a tag for every SR OS revision (for example, `22.10.R10` has none). The script then fails: it never uses the `sros_<maj>.<min>` branch, because the branch holds the newest revision, not the requested one. Ask the user which release to use instead.
 - SR Linux's `main` branch holds only docs - the YANG files live **only on the version tags**, so a valid three-part version (and thus tag) is required.
 
 Manual equivalent:

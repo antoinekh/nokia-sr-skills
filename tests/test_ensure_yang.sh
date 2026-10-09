@@ -40,11 +40,11 @@ source "$SUT"
 normalize_version sros "25.10.R4"
 assert_eq "sros canon from 25.10.R4"   "$CANON_VER"  "25.10.R4"
 assert_eq "sros repo"                  "$REPO"       "nokia/7x50_YangModels"
-assert_eq "sros refs from 25.10.R4"    "${REFS[*]}"  "sros_25.10.r4 sros_25.10"
+assert_eq "sros ref from 25.10.R4"     "$REF"        "sros_25.10.r4"
 
 normalize_version sros "25.10.r4"
 assert_eq "sros canon from lowercase"  "$CANON_VER"  "25.10.R4"
-assert_eq "sros refs from lowercase"   "${REFS[*]}"  "sros_25.10.r4 sros_25.10"
+assert_eq "sros ref from lowercase"    "$REF"        "sros_25.10.r4"
 
 if normalize_version sros "25.10"; then
   fail "reject bare sros version (no revision)" "accepted" "rejected"; else pass "reject bare sros version (no revision)"; fi
@@ -56,7 +56,7 @@ assert_eq "sros trims whitespace"      "$CANON_VER"  "25.10.R4"
 normalize_version srlinux "25.10.3"
 assert_eq "srlinux canon from 25.10.3" "$CANON_VER"  "25.10.3"
 assert_eq "srlinux repo"               "$REPO"       "nokia/srlinux-yang-models"
-assert_eq "srlinux refs from 25.10.3"  "${REFS[*]}"  "v25.10.3"
+assert_eq "srlinux ref from 25.10.3"   "$REF"        "v25.10.3"
 
 normalize_version srlinux "v25.10.3"
 assert_eq "srlinux canon from v-prefix" "$CANON_VER" "25.10.3"
@@ -108,28 +108,32 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
   if find_existing_yang sros > /dev/null; then
     fail "presence: empty dir miss" "found" "miss"; else pass "presence: empty dir miss"; fi )
 
-# fetch sros uses the tag ref first
+# fetch sros uses the revision tag
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
-  REFS=(sros_25.10.r4 sros_25.10)
+  REF=sros_25.10.r4
   out=$(fetch_yang sros)
   assert_eq "fetch: returns release path" "$out" "$CACHE_DIR/sros/25.10.R4"
   grep -q -- "tarball/sros_25.10.r4" "$CURL_STUB_LOG" \
     && pass "fetch: used tag ref" || fail "fetch: used tag ref" "missing" "present" )
 
-# fetch falls back to the branch ref when the tag download fails
+# a missing revision tag fails: the branch holds another revision, so it is never fetched
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"; export CURL_STUB_FAIL_REFS="sros_25.10.r4"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
-  REFS=(sros_25.10.r4 sros_25.10)
-  out=$(fetch_yang sros)
-  assert_eq "fetch: fallback release path" "$out" "$CACHE_DIR/sros/25.10.R4"
+  REF=sros_25.10.r4
+  fetch_yang sros > /dev/null 2>&1; rc=$?
+  assert_eq "fetch: missing tag exit 1" "$rc" "1"
   grep -q -- "tarball/sros_25.10$" "$CURL_STUB_LOG" \
-    && pass "fetch: used branch fallback" || fail "fetch: used branch fallback" "missing" "present" )
+    && fail "fetch: never fetches the branch" "fetched" "not fetched" \
+    || pass "fetch: never fetches the branch"
+  [[ -d $CACHE_DIR/sros/25.10.R4 ]] \
+    && fail "fetch: missing tag caches nothing" "cached" "absent" \
+    || pass "fetch: missing tag caches nothing" )
 
 # a failed (re)fetch must not destroy an existing good cache (atomic temp+rename).
-( make_sandbox; export PATH="$SANDBOX/bin:$PATH"; export CURL_STUB_FAIL_REFS="sros_25.10.r4 sros_25.10"
+( make_sandbox; export PATH="$SANDBOX/bin:$PATH"; export CURL_STUB_FAIL_REFS="sros_25.10.r4"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
-  REFS=(sros_25.10.r4 sros_25.10)
+  REF=sros_25.10.r4
   good="$CACHE_DIR/sros/25.10.R4/YANG"; mkdir -p "$good"; printf 'module x { }\n' > "$good/x.yang"
   fetch_yang sros > /dev/null 2>&1; rc=$?
   assert_eq "fetch: failed refresh exit 1" "$rc" "1"
@@ -139,7 +143,7 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
 # a successful fetch leaves no leftover temp dir behind.
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.R4"; REPO="nokia/7x50_YangModels"
-  REFS=(sros_25.10.r4 sros_25.10)
+  REF=sros_25.10.r4
   fetch_yang sros > /dev/null
   leftover=$(find "$CACHE_DIR/sros" -maxdepth 1 -name '25.10.R4.tmp.*' -print -quit 2>/dev/null)
   [[ -z $leftover ]] && pass "fetch: no leftover temp dir" \
@@ -148,7 +152,7 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
 # fetch srlinux uses the v-tag and nests like the real repo
 ( make_sandbox; export PATH="$SANDBOX/bin:$PATH"; export TAR_STUB_NOS="srlinux"
   CACHE_DIR="$SANDBOX/yang"; CANON_VER="25.10.3"; REPO="nokia/srlinux-yang-models"
-  REFS=(v25.10.3)
+  REF=v25.10.3
   out=$(fetch_yang srlinux)
   assert_eq "fetch: srlinux release path" "$out" "$CACHE_DIR/srlinux/25.10.3"
   grep -q -- "tarball/v25.10.3" "$CURL_STUB_LOG" \
@@ -249,7 +253,7 @@ set_repo frobnos; assert_eq "set_repo unknown nos returns 2" "$?" "2"
 # total download failure surfaces a diagnostic and exits 1
 ( make_sandbox; export HOME="$SANDBOX" PATH="$SANDBOX/bin:$PATH"
   unset NOKIA_SR_YANG_DIR XDG_CACHE_HOME
-  export CURL_STUB_FAIL_REFS="sros_25.10.r4 sros_25.10"
+  export CURL_STUB_FAIL_REFS="sros_25.10.r4"
   err=$(bash "$SUT" sros 25.10.R4 2>&1 >/dev/null); rc=$?
   assert_eq "e2e: exit 1 when all downloads fail" "$rc" "1"
   case "$err" in
