@@ -28,7 +28,7 @@ gnmic -a <node>:57400 get --path /system/information/version --encoding json_iet
 To re-confirm against the exact release you are targeting:
 
 ```bash
-YANG=$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3)
+YANG=$("<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3)
 grep -n "leaf version" "$YANG/srlinux-yang-models/srl_nokia/models/system/srl_nokia-system-info.yang"
 ```
 
@@ -47,5 +47,5 @@ If there is no directive, the version must be known out of band (from the device
 Map the release to the YANG models before writing paths or templates:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3
+"<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3
 ```

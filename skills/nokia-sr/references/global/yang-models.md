@@ -4,11 +4,11 @@ Both Nokia NOSes are YANG-modelled: the models define every configuration and st
 
 ## Getting the models
 
-Use the bundled `ensure-yang.sh`. First arg is the NOS, second is the version. It checks a local cache and downloads the matching release only if missing:
+Use the bundled `scripts/ensure-yang.sh` (replace `<skill-dir>` with the skill's directory, as `SKILL.md` says). First arg is the NOS, second is the version. It checks a local cache and downloads the matching release only if missing:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3
+"<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4
+"<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3
 ```
 
 It prints the local YANG release directory on stdout. Cache location:
@@ -70,7 +70,7 @@ Models live under `srlinux-yang-models/`:
 `ensure-yang.sh` prints the release root; grep recursively so it works for either layout.
 
 ```bash
-YANG=$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4)
+YANG=$("<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4)
 
 # Find where a node is defined
 grep -rn "leaf interface-name" "$YANG"
@@ -83,7 +83,7 @@ grep -rn "rpc \|action " "$YANG"
 ```
 
 ```bash
-YANG=$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3)
+YANG=$("<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3)
 
 # SR Linux: list the native model areas
 ls "$YANG/srlinux-yang-models/srl_nokia/models"

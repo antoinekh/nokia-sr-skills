@@ -29,7 +29,7 @@ The tree is usually faster than `grep` for "what is the path to X" and "what chi
 The combined module inlines its own submodules but still **imports** the sibling `nokia-types-*` / extension modules and IETF/OpenConfig, so put the top-level `YANG/` dir plus its `ietf/` and `openconfig/` subdirs on `-p` (pyang's `-p` does not recurse):
 
 ```bash
-YANG=$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4)
+YANG=$("<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4)
 COMBINED="$YANG/YANG/nokia-combined/nokia-conf.yang"   # nokia-state.yang for the state tree
 SEARCH=(-p "$YANG/YANG" -p "$YANG/YANG/ietf" -p "$YANG/YANG/openconfig")
 
@@ -50,7 +50,7 @@ docker run --rm -v "$YANG":/yang:ro ghcr.io/hellt/pyang:latest pyang \
 SR Linux splits its models across many feature folders that import each other. Easiest no-install way to browse structure is the online browser <https://yang.srlinux.dev>; on the downloaded models, `grep -rn` finds nodes and values directly (see `yang-models.md`). pyang needs every subdir on `-p` here (no recursion), so it is fiddly; yanglint's `-p` **recurses**, so one mounted path covers the whole tree:
 
 ```bash
-SRL="$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3)/srlinux-yang-models"
+SRL="$("<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3)/srlinux-yang-models"
 docker run --rm -v "$SRL":/srl:ro ghcr.io/antoinekh/yanglint:latest \
   -p /srl -f tree /srl/srl_nokia/models/network-instance/srl_nokia-network-instance.yang
 ```
@@ -60,7 +60,7 @@ docker run --rm -v "$SRL":/srl:ro ghcr.io/antoinekh/yanglint:latest \
 Save the data first - e.g. a NETCONF `<get-config>` reply, `pysros` output, or `gnmic get ... --encoding json_ietf` - then validate it for the pinned release. Mount the model dir and your data dir:
 
 ```bash
-YANG=$("${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4)
+YANG=$("<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4)
 yl() { docker run --rm -v "$YANG":/yang:ro -v "$PWD":/data ghcr.io/antoinekh/yanglint:latest "$@"; }
 
 yl -p /yang/YANG -t edit /yang/YANG/nokia-combined/nokia-conf.yang /data/myconfig.xml

@@ -50,7 +50,7 @@ A saved SR OS config carries the TiMOS release in its header comment line (the `
 Map the release to the YANG models before writing filters or templates:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4
+"<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4
 ```
 
 To tell SR OS apart from SR Linux in the first place, see `../global/detecting-nos.md`.

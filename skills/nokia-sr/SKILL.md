@@ -27,12 +27,12 @@ YANG paths are case-sensitive and version-dependent, so pin the release first.
 - SR OS version - `references/sros/version-detection.md`
 - SR Linux version - `references/srlinux/version-detection.md`
 
-Then fetch the matching models on demand (the script is NOS-aware - first arg is the NOS, second is the version):
+Then fetch the matching models on demand with `scripts/ensure-yang.sh`. In every command of this skill and its references, replace `<skill-dir>` with the absolute path of the directory that holds this `SKILL.md`. First arg is the NOS, second is the version:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros 25.10.R4
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" srlinux 25.10.3
-"${CLAUDE_PLUGIN_ROOT}/skills/nokia-sr/scripts/ensure-yang.sh" sros latest   # newest release
+"<skill-dir>/scripts/ensure-yang.sh" sros 25.10.R4
+"<skill-dir>/scripts/ensure-yang.sh" srlinux 25.10.3
+"<skill-dir>/scripts/ensure-yang.sh" sros latest   # newest release
 ```
 
 SR OS needs an explicit revision (`25.10.R4`, not bare `25.10`); SR Linux needs the three-part version (`25.10.3`); `latest` resolves the newest release from GitHub. It prints the local YANG release directory (downloading from Nokia's GitHub only if not already cached). How it works and how to search the models: `references/global/yang-models.md`.
