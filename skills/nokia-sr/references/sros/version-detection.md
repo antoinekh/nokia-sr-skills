@@ -41,9 +41,16 @@ v = connection.running.get("/nokia-state:state/system/version/version-number")
 
 ## From a config file
 
-A saved SR OS config carries the TiMOS release in its header comment line (the `TiMOS-B-<version>` token, same format as `show version`).
+A config saved from MD-CLI (`admin save`, or the output of `admin show configuration`) starts with a comment header, then the braced `configure { ... }` block. Example from an SR-SIM 26.3.R1:
 
-> Verify the exact header wording against a real saved config from your environment: it differs between a classic `.cfg` save and an MD-CLI `admin save` / `info`-style export. Treat the `TiMOS-B-<version>` token as the reliable anchor; grep for `^# TiMOS` or `TiMOS-` in the file.
+```
+# TiMOS-B-26.3.R1 both/x86_64 Nokia 7750 SR-1 Copyright (c) 2000-2026 Nokia.
+# All rights reserved. All use subject to applicable license agreements.
+# Built on Wed Mar 11 20:17:13 UTC 2026 by builder in /builds/263B/R1/panos
+# Configuration format version 26.3 revision 0
+```
+
+The release is the `TiMOS-B-<version>` token (`grep -m1 'TiMOS-' <file>`). Output of `info` has no header, so the version must then come from the device or the user. The header of a classic CLI save is not checked here; anchor on the `TiMOS-` token there too.
 
 ## Why it matters
 

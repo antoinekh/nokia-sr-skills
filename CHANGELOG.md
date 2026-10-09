@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- SR OS version detection: the header of an MD-CLI saved config is now shown as checked on an SR-SIM 26.3.R1 node, in place of a "verify it yourself" note.
 - SR OS MD-CLI: `configure` needs a mode (a bare `configure` fails); `compare` and `discard` act only on the current context, so the pre-commit check is now `compare /configure`. Checked on an SR-SIM 26.3.R1 node.
 - SR OS config format: MD-CLI `info` prints one leaf per line; `info flat` paths are relative to the current context; `info full-context` gives the absolute `/configure ...` lines that are valid input from any context. Checked on an SR-SIM 26.3.R1 node.
 - `yang-models.md`: the manual download commands create the target directory first; `tar -C` failed on a missing directory.
