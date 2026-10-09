@@ -10,6 +10,7 @@
 
 ### Changed
 
+- CI: the workflow token is read-only (`permissions: contents: read`).
 - `ensure-yang.sh`: a comment records why `latest` reads only the first page of tags (GitHub lists the newest version first).
 
 ### Fixed
