@@ -10,6 +10,7 @@
 
 ### Changed
 
+- `SKILL.md`: when the user does not know the version, Claude shows how to read it and waits; it uses `latest` only with the user's agreement and names the release it checked.
 - `SKILL.md`: removed a sentence that repeated the case-sensitive / version-dependent warning; the "ask for the version, never answer from memory" rule stays in Step 2 and in the key reminders on purpose.
 - `ensure-yang.sh`: the error-file trimming is one helper instead of two copies, and `set_repo` runs once instead of twice.
 - `marketplace.json`: the plugin entry no longer repeats `version` and `author`; Claude Code takes them from `plugin.json`, so the version is set in one place only.
