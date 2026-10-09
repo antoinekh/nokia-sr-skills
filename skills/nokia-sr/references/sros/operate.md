@@ -50,17 +50,23 @@ If the device is in `classic` mode, stop expecting NETCONF candidate edits to wo
   </commit>
   ```
 
-## md-compare (SR OS >= 22)
+## md-compare (SR OS 22.7 and later)
 
-A Nokia action that diffs candidate vs running in MD-CLI format - a human-readable pre-commit diff:
+A YANG action of `nokia-oper-global` that diffs candidate vs running - a human-readable pre-commit diff over NETCONF:
 
 ```xml
-<action xmlns="urn:nokia.com:sros:ns:yang:sr:conf">
-  <md-compare/>
+<action xmlns="urn:ietf:params:xml:ns:yang:1">
+  <global-operations xmlns="urn:nokia.com:sros:ns:yang:sr:oper-global">
+    <md-compare>
+      <source><candidate/></source>
+      <destination><running/></destination>
+      <format>md-cli</format>
+    </md-compare>
+  </global-operations>
 </action>
 ```
 
-Falls back to SSH CLI `compare` on older releases or when the MD-CLI engine is unavailable.
+The diff is in `<results><md-compare-output>` of the reply. `<format>` defaults to `xml`; `md-cli` gives the same `+`/`-` diff as MD-CLI `compare`. The optional `<path>` input limits the diff to a subtree; check its shape in the pinned `nokia-oper-global.yang`, because it changed between releases. Releases before 22.7 have no `md-compare`: run `compare` in MD-CLI instead.
 
 ## MD-CLI candidate modes (per session)
 
