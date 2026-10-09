@@ -23,15 +23,14 @@ The Nokia `srpls` language server / `vscode-sr` extension key off these signals 
 - `*.sros.cfg` -> SR OS
 - `*.srl.cfg` -> SR Linux
 
-### 2. First-line directive
+### 2. Header directives
 
-Both NOSes let you pin the model in a header comment that tools read from the first lines:
+Both NOSes let you pin the release in a header comment. srpls reads `# version=` on line 1 only; SR Linux also has `# platform=`, read in the first 5 lines. srpls reads no platform directive for SR OS.
 
 ```
 # version=25.10.R4         # SR OS  (R-style release)
 # version=25.10.3          # SR Linux (three-part numeric)
-# platform=7750            # SR OS
-# platform=7220-ixr-d3l    # SR Linux (platform names differ entirely)
+# platform=7220-ixr-d3l    # SR Linux only
 ```
 
 The version *shape* alone is a strong hint: SR OS uses `MAJOR.MINOR.Rn` (e.g. `25.10.R4`); SR Linux uses `MAJOR.MINOR.PATCH` (e.g. `25.10.3`).

@@ -34,7 +34,7 @@ grep -n "leaf version" "$YANG/srlinux-yang-models/srl_nokia/models/system/srl_no
 
 ## From a config file
 
-SR Linux saved configs do **not** carry a TiMOS-style banner. The release is conveyed by the `# version=` header directive that the language server reads:
+SR Linux saved configs do **not** carry a TiMOS-style banner. The release is conveyed by the `# version=` header directive on line 1, which the language server reads:
 
 ```
 # version=25.10.3

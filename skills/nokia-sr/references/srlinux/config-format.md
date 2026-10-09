@@ -49,14 +49,14 @@ Run `info` from a context to scope output, e.g. from `network-instance default`,
 
 ## Header directives (language server)
 
-Tools key off first-line comments (comment prefixes are `#`, `//`, `!`):
+srpls reads `# version=` on line 1 only, and `# platform=` in the first 5 lines (comment prefixes are `#`, `//`, `!`):
 
 ```
 # version=25.10.3
 # platform=7220-ixr-d3l
 ```
 
-The `# platform=` directive matters: interface names are platform-specific (`ethernet-1/1`, `ethernet-1/49`, ...). The srpls language server uses it to offer valid interface completions and flag unknown ones. Common platforms include the 7220 IXR D-series (`7220-ixr-d2l`, `7220-ixr-d3l`, ...) and H-series; list the full set from the language server's known platforms.
+The `# platform=` directive matters: interface names are platform-specific (`ethernet-1/1`, `ethernet-1/49`, ...). The srpls language server uses it to offer valid interface completions and flag unknown ones. Common platforms include the 7220 IXR D-series (`7220-ixr-d2l`, `7220-ixr-d3l`, ...) and H-series; list the full set from the language server's known platforms. srpls accepts the full name (`7220-ixr-d3l`) or the short name (`ixr-d3l`), in any case. An unknown name silently falls back to `7220-IXR-D2L`, so check the spelling.
 
 ## Top-level apps (vs SR OS)
 

@@ -18,6 +18,7 @@
 
 ### Fixed
 
+- Header directives, checked against the srpls source: `# version=` must be on line 1; SR Linux `# platform=` is read in the first 5 lines and accepts the full or short name (`7220-ixr-d3l` or `ixr-d3l`); an unknown platform falls back to `7220-IXR-D2L`; srpls reads no platform directive for SR OS.
 - `SKILL.md` key reminder: the SR OS flat form that is valid input from any context is `info full-context`, not `info flat`.
 - Test suite: every end-to-end test runs in a sandbox with stubbed `curl`/`tar`, so no test can reach the network or the real cache, even after a regression.
 - Test suite: the sandbox directories are removed on exit; each run left about 18 directories in `/tmp`.

@@ -24,7 +24,7 @@ The editor-facing front end that bundles and drives `srpls`:
 ### Quickstart
 
 1. Create a file named `myconfig.srl.cfg` (or `.sros.cfg`).
-2. Put the platform / version on the first line: `# platform=ixr-d3l` and/or `# version=25.10.3`.
+2. Put `# version=25.10.3` on line 1. For SR Linux, add `# platform=ixr-d3l` (or the full name `7220-ixr-d3l`) in the first 5 lines.
 3. Start typing - completions appear from the YANG model.
 
 Use this reference whenever the user asks for a "language server", "LSP", "autocomplete", "linting", or editor tooling for Nokia SR config.
