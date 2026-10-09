@@ -38,9 +38,11 @@ Manual equivalent:
 
 ```bash
 # SR OS
+mkdir -p ./sros-25.10.R4
 curl -fsSL https://api.github.com/repos/nokia/7x50_YangModels/tarball/sros_25.10.r4 \
   | tar -xz --strip-components=1 -C ./sros-25.10.R4
 # SR Linux
+mkdir -p ./srlinux-25.10.3
 curl -fsSL https://api.github.com/repos/nokia/srlinux-yang-models/tarball/v25.10.3 \
   | tar -xz --strip-components=1 -C ./srlinux-25.10.3
 ```
