@@ -8,7 +8,7 @@ When you want editor support (completion, validation, hover, go-to-path) for Nok
 
 - Repo: <https://github.com/srl-labs/srpls>
 - It checks the config against the YANG model for a chosen software release and provides keyword completion, hover, document symbols, folding, and flatten/unflatten.
-- You don't run `srpls` directly: it is installed and driven by the `vscode-sr` extension (see below), which selects the NOS and release for it.
+- In VS Code, the `vscode-sr` extension (see below) installs and runs `srpls` for you and selects the NOS and release. Other LSP editors run the `srpls` binary themselves.
 
 It loads YANG models under `~/.srpls/` and detects the target version from the document header (`# version=...`) or, for SR OS, a `TiMOS-...` banner. This skill's `ensure-yang.sh` fetches the **same** models from the **same** repos (see `references/global/yang-models.md`); it keeps its own cache under `~/.cache/nokia-sr/` rather than `~/.srpls/`.
 
