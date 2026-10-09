@@ -7,6 +7,10 @@
 - Tests for a tar failure, a tarball without `.yang` files, an unreachable tags API, and a tags list without a matching version.
 - README: how to use the skill in OpenCode and other Agent Skills harnesses.
 
+### Changed
+
+- `ensure-yang.sh`: a comment records why `latest` reads only the first page of tags (GitHub lists the newest version first).
+
 ### Fixed
 
 - Test suite: every end-to-end test runs in a sandbox with stubbed `curl`/`tar`, so no test can reach the network or the real cache, even after a regression.

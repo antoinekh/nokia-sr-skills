@@ -94,6 +94,7 @@ normalize_version() {
 # Returns 1 if the API is unreachable or no matching tag is found.
 resolve_latest() {
   local nos=$1 names ver=""
+  # One page is enough: GitHub lists tags newest version first (observed, not documented).
   names=$(curl "${CURL_OPTS[@]}" "$GITHUB_API/$REPO/tags?per_page=100" 2>/dev/null) || true
   [[ -z $names ]] && return 1
   local tags
