@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- SR OS MD-CLI: `info from state` is invalid (`from` accepts only `candidate`, `running`, `baseline` or `intended`); `operate.md` now shows how to read a `/state` path with `info /state ...` or by entering the context. `show` command keywords are not in the YANG models (for example `incl-mcast`, not `inclusive-mcast`), so the doc says to list them with `?` instead of guessing. Checked on an SR-SIM 26.3.R1 node.
+
 ## v0.4.0 - 2026-10-09
 
 ### Added

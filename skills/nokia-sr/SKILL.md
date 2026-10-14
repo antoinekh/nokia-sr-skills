@@ -57,6 +57,7 @@ SR OS needs an explicit revision (`25.10.R4`, not bare `25.10`); SR Linux needs 
 | Get the SR OS release from a device or config file | `references/sros/version-detection.md` |
 | Understand `info` vs `info flat` vs `info json` output | `references/sros/config-format.md` |
 | Push/diff config over NETCONF or navigate MD-CLI | `references/sros/operate.md` |
+| Read state (`/state ...`) or find a `show` command keyword in MD-CLI | `references/sros/operate.md` |
 
 ### SR Linux (SRL)
 

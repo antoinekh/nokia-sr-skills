@@ -90,6 +90,15 @@ NETCONF sessions edit the shared global candidate, like `configure global`: an u
 - `compare` shows candidate vs running; `validate` checks the candidate without applying it; `discard` drops candidate changes. `compare` and `discard` act only on the current context and below: from a sub-context, a change elsewhere is not shown and not dropped. Use `compare /configure` and `discard /configure` for the whole candidate.
 - `logout` ends the session and disconnects (use `exit all` first if you only mean to leave the config context, not the device). Discard or commit any candidate changes before logging out.
 
+### Read state (operational data)
+
+State is not a datastore: `info from` accepts only `candidate`, `running`, `baseline` or `intended`. `info from state /state ...` fails with `MINOR: MGMT_CORE #2301: Invalid element value - 'from' expected keyword '(candidate|running|baseline|intended)'`. Read a `/state` path in one of these two ways, from operational mode (checked on SR-SIM 26.3.R1):
+
+- Give the absolute path to `info`, from any context: `info /state router "Base" bgp statistics routes-per-family evpn`.
+- Enter the context, then run `info`: `/state router "Base" bgp statistics routes-per-family evpn`, then `info`.
+
+The YANG models do not define `show` commands, so their keywords can differ from the YANG names: the EVPN inclusive multicast routes are `show router bgp routes evpn incl-mcast` (26.3.R1), and `inclusive-mcast` fails with "Unknown element". Do not guess a `show` keyword: type `?` after the command on the device to list the keywords, or ask the user to do it.
+
 ### Compare before you commit
 
 Always review the candidate before committing, and propose this to the user first: run `compare /configure` (or the `md-compare` action over NETCONF, see above) to show exactly what will change versus running, and `validate` to check it applies cleanly. Only commit once the diff is confirmed.
